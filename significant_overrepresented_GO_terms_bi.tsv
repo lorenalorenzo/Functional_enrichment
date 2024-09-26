@@ -1,8 +1,0 @@
-GO.ID	Term	Annotated	Significant	Expected	Fisher	p.adj
-GO:0006029	proteoglycan metabolic process	1	1	0.01	0.01	0.014
-GO:0015012	heparan sulfate proteoglycan biosynthetic process	1	1	0.01	0.01	0.014
-GO:0030166	proteoglycan biosynthetic process	1	1	0.01	0.01	0.014
-GO:0044272	sulfur compound biosynthetic process	1	1	0.01	0.01	0.014
-GO:2001222	regulation of neuron migration	1	1	0.01	0.01	0.014
-GO:0001764	neuron migration	2	1	0.02	0.02	0.02
-GO:0035456	response to interferon-beta	2	1	0.02	0.02	0.02
