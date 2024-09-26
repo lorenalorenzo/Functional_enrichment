@@ -90,17 +90,8 @@ for (set_name in names(gene_sets)) {
   
   # Perform Underrepresentation Test using the "classic" algorithm and custom GOFisherUnder function
   resultFisherUnder <- getSigGroups(GOdata, test.stat)
-  
-  # Get all GO terms used in the analysis
-  allGO <- usedGO(GOdata)
-  
-#  # Generate a table of results for overrepresentation
-#  resultsOver <- GenTable(GOdata, classicFisher = resultFisherOver, orderBy = "classicFisher", #topNodes = length(allGO))
-#  
-#  # Generate a table of results for underrepresentation
-#  resultsUnder <- GenTable(GOdata, classicFisher = resultFisherUnder, orderBy = "classicFisher"#, topNodes = length(allGO))
-  
-  
+
+  #Create a table with significant results with a p-value adjusted by Bonferroni.
  result_over <- GenTable(GOdata, Fisher=resultFisherOver, topNodes=resultFisherOver@geneData[2], numChar=1000) %>% 
         as_tibble() %>% 
         mutate(p.adj = round(p.adjust(as.numeric(gsub("<", "", Fisher)), method="BH"), 15)) %>%
