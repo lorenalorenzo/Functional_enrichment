@@ -1,0 +1,4 @@
+# Ignore all .txt and .tsv files
+*.txt
+*.tsv
+
