@@ -1,7 +1,7 @@
 Enrichment in introgressed regions
 ================
 Lorena Lorenzo Fernández
-26-Sep-2024
+07-Oct-2024
 
 ## Testing for over and under representation on introgressed regions between Iberian and Eurasian lynxes
 
@@ -89,7 +89,7 @@ for (set_name in names(gene_sets)) {
   # Perform Underrepresentation Test using the "classic" algorithm and custom GOFisherUnder function
   resultFisherUnder <- getSigGroups(GOdata, test.stat)
 
-  #Create a table with significant results with a p-value adjusted by Bonferroni.
+  #Create a table with significant results with a p-value adjusted by FDR.
  result_over <- GenTable(GOdata, Fisher=resultFisherOver, topNodes=resultFisherOver@geneData[2], numChar=1000) %>% 
         as_tibble() %>% 
         mutate(p.adj = round(p.adjust(as.numeric(gsub("<", "", Fisher)), method="BH"), 15)) %>%
