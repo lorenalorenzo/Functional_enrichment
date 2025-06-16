@@ -1,44 +1,40 @@
----
-title: "Enrichment in introgressed regions"
-author: "Lorena Lorenzo Fernández"
-date: "`r format(Sys.time(), '%d-%b-%Y')`"
-output:
-  github_document:
----
-
-```{r global-options, include=FALSE}
-knitr::opts_chunk$set(warning=FALSE, message=FALSE)
-```
+Enrichment in introgressed regions
+================
+Lorena Lorenzo Fernández
+16-Jun-2025
 
 ## Testing for over and under representation on introgressed regions between Iberian and Eurasian lynxes
 
-**DISCLAIMER: This is part of Enrico's proyect in detecting and characterising introgression in lynxes. Go to ebazzicalupo GitHub page for more information.**
+**DISCLAIMER: This is part of Enrico’s proyect in detecting and
+characterising introgression in lynxes. Go to ebazzicalupo GitHub page
+for more information.**
 
-Here, we are analyzing the excess or lack of functions in GO terms in a list of genes obtained from the introgressed regions. The data consist of:
+Here, we are analyzing the excess or lack of functions in GO terms in a
+list of genes obtained from the introgressed regions. The data consist
+of:
 
-1.  List of genes introgressed from Eurasian to Iberian ("ab.geneids.txt")
-2.  List of genes introgressed from Iberian to Eurasian ("ba.geneids.txt")
-3.  List of genes introgressed in both directions ("bi.geneids.txt")
-4.  Table with the annotation of the genes and the corresponding GO terms ("LYRU_2A.FA.genego_table.tsv")
+1.  List of genes introgressed from Eurasian to Iberian
+    (“ab.geneids.txt”)
+2.  List of genes introgressed from Iberian to Eurasian
+    (“ba.geneids.txt”)
+3.  List of genes introgressed in both directions (“bi.geneids.txt”)
+4.  Table with the annotation of the genes and the corresponding GO
+    terms (“LYRU_2A.FA.genego_table.tsv”)
 
-```{r eval=FALSE}
+``` r
 # Load necessary libraries
 library(topGO)
 library(tidyverse)
-
 ```
 
-```{r eval=FALSE}
-
+``` r
 #Define input and output files
 gene_set <- "your_candidate_genes.txt"
 gene2GO_df <- read.delim("your gene to GO table from annotation.tsv", header = TRUE, sep = "\t")
 output_name<- "your enrichment results filename"
 ```
 
-```{r eval=FALSE}
-
-
+``` r
 # Convert the gene2GO data frame into a named list where each gene ID points to a vector of GO terms
 gene2GO <- setNames(strsplit(gene2GO_df$go_terms, ";"), gene2GO_df$gene_id) 
 
@@ -78,8 +74,7 @@ candidateGenes <- readLines(gene_set)
   write.table(result_table, paste0(output_name), sep = "\t", quote = FALSE, row.names = FALSE)
 ```
 
-```{r, eval=FALSE, results= "hide"}
-
+``` r
 # Custom method to perform Fisher's exact test for underrepresentation (less frequent GO terms)
 if (!isGeneric("GOFisherUnder")) {
   setGeneric("GOFisherUnder", function(object) standardGeneric("GOFisherUnder"))
