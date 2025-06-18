@@ -1,0 +1,40 @@
+# RStudio and R history
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# Output files
+*.tsv
+*.csv
+*.xlsx
+*.png
+*.pdf
+
+# Markdown or HTML render outputs
+*.html
+*.md
+*_files/
+
+# Script backups or drafts
+*_old.md
+*_old.R
+*_backup.R
+*copy.R
+*previous*.R
+
+# Intermediate files and logs
+*.log
+*.tmp
+*.bak
+
+# Local directories
+data/
+results/
+plots/
+tmp/
+scratch/
+
+# Hidden system files
+.DS_Store
+Thumbs.db

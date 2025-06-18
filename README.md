@@ -1,107 +1,112 @@
-Enrichment in introgressed regions
-================
-Lorena Lorenzo Fernández
-07-Oct-2024
+# GO Enrichment Analysis Pipeline
 
-## Testing for over and under representation on introgressed regions between Iberian and Eurasian lynxes
+This repository contains a generalized and reusable pipeline for performing Gene Ontology (GO) enrichment analysis using the R package **topGO**.
 
-**DISCLAIMER: This is part of Enrico’s proyect in detecting and
-characterising introgression in lynxes. Go to ebazzicalupo GitHub page
-for more information.**
+Originally designed for [Enrico's lynx introgression project](https://github.com/Enricobazzi/Lynxtrogression_v2), this pipeline has been modularized to be applicable to any gene set.
 
-Here, we are analyzing the excess or lack of functions in GO terms in a
-list of genes obtained from the introgressed regions. The data consist
-of:
+---
 
-1.  List of genes introgressed from Eurasian to Iberian
-    (“ab.geneids.txt”)
-2.  List of genes introgressed from Iberian to Eurasian
-    (“ba.geneids.txt”)
-3.  List of genes introgressed in both directions (“bi.geneids.txt”)
-4.  Table with the annotation of the genes and the corresponding GO
-    terms (“LYRU_2A.FA.genego_table.tsv”)
+## 📦 Requirements
 
-``` r
-# Load necessary libraries
-library(topGO)
-library(tidyverse)
+- R (≥ 4.0 recommended)
+- R packages: `topGO`, `tidyverse`, `optparse`
+
+Install them with:
+
+```r
+install.packages(c("tidyverse", "optparse"))
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("topGO")
 ```
 
-``` r
-# Custom method to perform Fisher's exact test for underrepresentation (less frequent GO terms)
-if (!isGeneric("GOFisherUnder")) {
-  setGeneric("GOFisherUnder", function(object) standardGeneric("GOFisherUnder"))
-}
+---
 
-setMethod("GOFisherUnder", "classicCount", function(object) {
-  contMat <- contTable(object)
-  if (all(contMat == 0)) {
-    p.value <- 1
-  } else {
-    p.value <- fisher.test(contMat, alternative = "less")$p.value
-  }
-  return(p.value)
-})
+## 📥 Input Files
+
+### 1. `candidate_genes.txt`
+A plain text file listing one gene ID per line:
+
+```
+GeneA
+GeneB
+GeneC
+...
 ```
 
-``` r
-# Define the gene sets to analyze
-gene_sets <- list(
-  ab = "ab.geneids.txt",
-  ba = "ba.geneids.txt",
-  bi = "bi.geneids.txt"
-)
-# Read the gene-to-GO mappings from a .tsv file
-gene2GO_df <- read.delim("LYRU2_2A.FA.genego_table.tsv", header = TRUE, sep = "\t")
+### 2. `gene_to_GO.tsv` *(only if using `--annotation_source custom`, see below)*
+A tab-delimited file with two columns:
+- `gene_id`: the gene name
+- `go_terms`: semicolon-separated GO terms
 
-# Convert the gene2GO data frame into a named list where each gene ID points to a vector of GO terms
-gene2GO <- setNames(strsplit(gene2GO_df$go_terms, ","), gene2GO_df$gene_id)
+This file is ignored if `--annotation_source ensembl` is used, in which case you must specify `--ensembl_dataset` to select the species.
 
-# Get the list of all unique genes from the gene2GO mapping
-allGenesList <- unique(gene2GO_df$gene_id)
-
-# Loop through each gene set
-for (set_name in names(gene_sets)) {
-  
-  # Read the list of candidate genes for the current gene set
-  candidateGenes <- readLines(gene_sets[[set_name]])
-  
-  # Create a named vector (geneList) for all genes:
-  # 1 for candidate genes, 0 for non-candidate genes
-  geneList <- setNames(as.numeric(allGenesList %in% candidateGenes), allGenesList)
-  
-  # Create the topGOdata object for both overrepresentation and underrepresentation tests
-  GOdata <- new(
-    "topGOdata",
-    ontology = "BP",  # Choose "BP", "MF", or "CC" as appropriate
-    allGenes = geneList,  # The named vector of all genes with 1 for candidates, 0 for non-candidates
-    geneSel = function(p) p == 1,  # Function to select candidate genes (where p == 1)
-    annot = annFUN.gene2GO,  # Annotation function for gene2GO mappings
-    gene2GO = gene2GO  # Your gene-to-GO mappings
-  )
-  
-  # Perform Overrepresentation Test using the "classic" algorithm and default Fisher's exact test
-  resultFisherOver <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
-  
-  # Set up a new test for underrepresentation using the custom GOFisherUnder function
-  test.stat <- new("classicCount", testStatistic = GOFisherUnder, name = "Fisher's exact test for underrepresentation")
-  
-  # Perform Underrepresentation Test using the "classic" algorithm and custom GOFisherUnder function
-  resultFisherUnder <- getSigGroups(GOdata, test.stat)
-
-  #Create a table with significant results with a p-value adjusted by FDR.
- result_over <- GenTable(GOdata, Fisher=resultFisherOver, topNodes=resultFisherOver@geneData[2], numChar=1000) %>% 
-        as_tibble() %>% 
-        mutate(p.adj = round(p.adjust(as.numeric(gsub("<", "", Fisher)), method="BH"), 15)) %>%
-        filter(p.adj<0.05) 
- 
-  result_under <- GenTable(GOdata, Fisher=resultFisherUnder, topNodes=resultFisherUnder@geneData[2], numChar=1000) %>% 
-        as_tibble() %>% 
-        mutate(p.adj = round(p.adjust(as.numeric(gsub("<", "", Fisher)), method="BH"), 15)) %>%
-        filter(p.adj<0.05) 
-
-  # Save the results to files
-  write.table(result_over, paste0("significant_overrepresented_GO_terms_", set_name, ".tsv"), sep = "\t", quote = FALSE, row.names = FALSE)
-  write.table(result_under, paste0("significant_underrepresented_GO_terms_", set_name, ".tsv"), sep = "\t", quote = FALSE, row.names = FALSE)
-}
+Example:
 ```
+gene_id    go_terms
+GeneA      GO:0008150;GO:0003674
+GeneB      GO:0009987
+```
+
+---
+
+## 🚀 Running the Pipeline
+
+From the project root, run the script via Rscript:
+
+### Option A: Use custom/local annotation
+
+```bash
+Rscript scripts/run_enrichment.R \
+  --genes data/candidate_genes.txt \
+  --annotation data/gene_to_GO.tsv \
+  --annotation_source custom \
+  --out results/my_project
+```
+
+### Option B: Use Ensembl annotation 
+
+```bash
+Rscript scripts/run_enrichment.R \
+  --genes data/candidate_genes.txt \
+  --annotation_source ensembl \
+  --ensembl_dataset fcatus_gene_ensembl \
+  --out results/my_project_ensembl
+```
+
+Use the `--ensembl_dataset` argument to specify the species dataset from Ensembl. Example datasets:
+- `fcatus_gene_ensembl` — domestic cat (Felis catus)
+- `hsapiens_gene_ensembl` — human
+- `mmusculus_gene_ensembl` — mouse
+
+You can find the full list at: [https://www.ensembl.org/biomart/martview](https://www.ensembl.org/biomart/martview)
+
+⚠️ When using `--annotation_source ensembl`, you do **not** need to specify a `--annotation` file. The script will download the gene-to-GO mappings directly from Ensembl using the `biomaRt` package.
+
+In this case, the script will fetch GO terms for **Felis catus** from Ensembl using the `biomaRt` package.
+
+
+---
+
+## 📤 Output Files
+
+- `results/my_project_over.tsv`: Full enrichment results for all GO terms
+- `results/my_project_significant.tsv`: Filtered results with Fisher < 0.05 and >1 significant gene
+
+Each row includes:
+- `GO.ID`: GO term identifier
+- `Term`: Description of the GO term
+- `Significant`: Number of candidate genes associated with the term
+- `Fisher`: Raw p-value from Fisher's exact test
+- `Genes`: Semicolon-separated list of candidate genes contributing to the term, using gene names when available (otherwise Ensembl IDs)
+---
+
+## 🧪 Notes
+
+- This script uses the "Biological Process" (BP) ontology by default.
+  - You can change it to "MF" (Molecular Function) or "CC" (Cellular Component) by modifying the line `ontology = "BP"` inside the script.
+- GO terms are considered significantly enriched if:
+  - Fisher's exact test p-value < 0.05, **and**
+  - More than 1 candidate gene is annotated to the term.
+- The output includes a `Genes` column with contributing gene names (or Ensembl IDs if names are unavailable).
+- When using Ensembl annotations, only **protein-coding** genes are considered.
