@@ -1,9 +1,30 @@
 # run_enrichment.R
-# Generalized GO enrichment script using topGO
+# Automatically install missing CRAN and Bioconductor packages
+cran_packages <- c("optparse", "tidyverse", "biomaRt")
+bioc_packages <- c("topGO")
 
+# Install CRAN packages
+for (pkg in cran_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cloud.r-project.org")
+  }
+}
+
+# Install Bioconductor packages
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager", repos = "https://cloud.r-project.org")
+}
+for (pkg in bioc_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    BiocManager::install(pkg, ask = FALSE)
+  }
+}
+
+# Load required libraries
 library(topGO)
 library(tidyverse)
 library(optparse)
+library(biomaRt) # only for Ensembl annotation
 
 # ---------------------
 # Command-line options
@@ -41,7 +62,7 @@ if (opt$annotation_source == "custom" && is.null(opt$annotation)) {
 candidateGenes <- readLines(opt$genes)
 
 if (opt$annotation_source == "ensembl") {
-  library(biomaRt)
+
 
   message("🔄 Downloading annotation from Ensembl...")
   ensembl <- useMart("ensembl", dataset = opt$ensembl_dataset)
@@ -60,8 +81,11 @@ if (opt$annotation_source == "ensembl") {
     deframe()
 
 } else {
-  gene2GO_df <- read.delim(opt$annotation, header = TRUE, sep = "\t")
-  gene2GO <- setNames(strsplit(gene2GO_df$go_terms, ";"), gene2GO_df$gene_id)
+  gene2GO_df <- read.delim(opt$annotation, header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+                # Force go_terms to character explicitly
+                gene2GO_df$go_terms <- as.character(gene2GO_df$go_terms)
+                # SPLIT go_terms into a list
+                gene2GO <- setNames(strsplit(gene2GO_df$go_terms, ","), gene2GO_df$gene_id)
   allGenesList <- unique(gene2GO_df$gene_id)
 
   # Use gene_id as name if no external names are given
