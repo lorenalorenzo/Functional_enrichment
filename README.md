@@ -32,13 +32,6 @@ A tab-delimited file with two columns:
 - `gene_id`: the gene name
 - `go_terms`: semicolon-separated GO terms
 
-You can directly use the [gene_to_go_gff3.py](https://github.com/lorenalorenzo/Functional_enrichment/blob/main/scripts/gene_to_go_gff3.py) Python script to extract the `gene_to_go.tsv` file. The script inspects the gff3 looking for transcript rows and takes the Parent ID (gene_id) and the GO ontology terms associated (go_terms).
-
-Usage:
-```bash
-python gene_to_go_gff3.py <input.gff3> gene_to_go.tsv
-```
-
 This file is ignored if `--annotation_source ensembl` is used, in which case you must specify `--ensembl_dataset` to select the species.
 
 Example:
@@ -47,7 +40,12 @@ gene_id    go_terms
 GeneA      GO:0008150,GO:0003674
 GeneB      GO:0009987
 ```
+You can directly use the [gene_to_go_gff3.py](https://github.com/lorenalorenzo/Functional_enrichment/blob/main/scripts/gene_to_go_gff3.py) Python script to extract the `gene_to_go.tsv` file. The script inspects the gff3 looking for transcript rows and takes the Parent ID (gene_id) and the GO ontology terms associated (go_terms).
 
+Usage:
+```bash
+python gene_to_go_gff3.py <input.gff3> gene_to_go.tsv
+```
 ---
 
 ## 🚀 Running the Pipeline
