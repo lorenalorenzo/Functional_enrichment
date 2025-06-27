@@ -9,16 +9,9 @@ Originally designed for [Enrico's lynx introgression project](https://github.com
 ## 📦 Requirements
 
 - R (≥ 4.0 recommended)
-- R packages: `topGO`, `tidyverse`, `optparse`
+- R packages: `topGO`, `tidyverse`, `optparse` and `biomaRt` if used with ensembl annotation
 
-Install them with:
-
-```r
-install.packages(c("tidyverse", "optparse"))
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install("topGO")
-```
+Automatically installed and load when running the run_enrichment.R script
 
 ---
 
@@ -79,7 +72,7 @@ Use the `--ensembl_dataset` argument to specify the species dataset from Ensembl
 - `hsapiens_gene_ensembl` — human
 - `mmusculus_gene_ensembl` — mouse
 
-You can find the full list at: [https://www.ensembl.org/biomart/martview](https://www.ensembl.org/biomart/martview)
+You can find the full list using the listDatasets(ensembl) function of biomaRt package.
 
 ⚠️ When using `--annotation_source ensembl`, you do **not** need to specify a `--annotation` file. The script will download the gene-to-GO mappings directly from Ensembl using the `biomaRt` package.
 
